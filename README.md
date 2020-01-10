@@ -1,14 +1,39 @@
 # ja3box
+
+```
+  ________
+ [__,.,--\\ __     ______
+    | |    / \\   |___ //
+    | |   / _ \\    |_ \\  
+  ._| |  / ___ \\  ___) ||  box
+  \__// /_//  \_\\|____//   v1.0
+```
+
+
 extra ja3 when sniffing or from a pcap.
 
 ## Example
-### online mode
-![](/pics/online.png.png)
+> online mode
 
-### offline mode
+`sudo python ja3box.py -i en0`
+![](/pics/online.png)
+
+> offline mode
+
+`sudo python ja3box.py -f test.pcap`
 ![](/pics/offline.png)
 
-### more?
+> output json
+
+`sudo python ja3box.py -i en0 --json`
+![](/pics/output-json.png)
+
+> save json to file
+
+`sudo python ja3box.py -i en0 -of test.json --json`
+![](/pics/output-json-to-file.png)
+
+### more
 ```
 » sudo python ja3box.py -h
 usage: ja3box.py [-h] [-i I] [-f F] [-of OF] [-bpf BPF] [--json] [--savepcap]
