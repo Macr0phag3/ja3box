@@ -1,6 +1,6 @@
 # ja3box
 
-![](/pics/logo.png)
+<img src="/pics/logo.png" width="400">
 
 extra ja3 when sniffing or from a pcap.
 
