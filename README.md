@@ -4,6 +4,13 @@
 
 extra ja3 when sniffing or from a pcap.
 
+## Env
+
+1. `pip install scapy`
+2. py3.x
+3. macos or linux, maybe windows
+4. run as root when in the online mode
+
 ## Example
 > online mode
 
