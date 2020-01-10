@@ -1,6 +1,6 @@
 # ja3box
 
-<img src="/pics/logo.png" width="400">
+<img src="/pics/logo.png" width="500">
 
 extra ja3 when sniffing or from a pcap.
 
@@ -9,13 +9,13 @@ extra ja3 when sniffing or from a pcap.
 
 `sudo python ja3box.py -i en0`
 
-<img src="/pics/online.png" width="500">
+<img src="/pics/online.png" width="600">
 
 > offline mode
 
 `sudo python ja3box.py -f test.pcap`
 
-<img src="/pics/offline.png" width="500">
+<img src="/pics/offline.png" width="600">
 
 > output json
 
@@ -27,7 +27,7 @@ extra ja3 when sniffing or from a pcap.
 
 `sudo python ja3box.py -i en0 -of test.json --json`
 
-<img src="/pics/output-json-to-file.png" width="500">
+<img src="/pics/output-json-to-file.png" width="600">
 
 ### more
 ```
