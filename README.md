@@ -2,7 +2,7 @@
 
 <img src="/pics/logo.png" width="500">
 
-extra ja3 when sniffing or from a pcap.
+extract ja3 when sniffing or from a pcap.
 
 ## Env
 
