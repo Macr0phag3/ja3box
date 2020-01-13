@@ -117,7 +117,9 @@ def collector(pkt):
         COUNT_CLIENT += 1
         TLSClientHello = pkt.getlayer('TLS').getlayer('TLSClientHello')
 
-        server_name = TLSClientHello.getlayer('TLS_Ext_ServerName').servernames[0].servername.decode('utf8')
+        server_names = getattr(TLSClientHello.getlayer('TLS_Ext_ServerName'), 'servernames', [])
+        if server_names:
+            server_name = getattr(server_names[0], 'servername', 'unknown').decode('utf8')
 
         TLSVersion = TLSClientHello.version
         Cipher = TLSClientHello.ciphers
@@ -145,6 +147,7 @@ def collector(pkt):
                     'md5': md5_ja3
                 }
             }
+
             Print(json_data)
         else:
             color_data = '\n'.join([
@@ -275,7 +278,7 @@ elif args.f:
 else:
     sys.exit(f'[!] {put_color("give me the interface or filename", "red")}')
 
-print(f'[*] BPF: {put_color(bpf if bpf else "is None", "white")}')
+print(f'[*] BPF: {put_color(bpf if bpf else "None", "white")}')
 print(f'[*] output filename: {put_color(output_filename, "white")}')
 print(f'[*] output as json: {put_color(need_json, "green" if need_json else "white", bold=False)}')
 print(f'[*] save raw pcap: {put_color(savepcap, "green" if savepcap else "white", bold=False)}')
@@ -290,8 +293,6 @@ try:
     sniff(**sniff_args)
 except Exception as e:
     print(f'[!] {put_color(f"Something went wrong: {e}", "red")}')
-else:
-    print('\r[*]', put_color('have a nice day!', 'green'))
 
 end_ts = time.time()
 print(
@@ -301,3 +302,5 @@ print(
     f'server hello: {put_color(COUNT_SERVER, "cyan")};',
     f'in {put_color(timer_unit(end_ts-start_ts), "white")}'
 )
+
+print('\n\r[*]', put_color('have a nice day!', 'green'))
