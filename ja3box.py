@@ -20,6 +20,20 @@ from scapy.all import sniff, load_layer
 warnings.filterwarnings('ignore')
 
 
+def get_attr(obj, attr, default=""):
+    '''
+    obj: 对象
+    attr: 属性名
+    default: 默认值
+    '''
+
+    value = getattr(obj, attr, default)
+    if value is None:
+        value = default
+
+    return value
+
+
 def timer_unit(s):
     if s <= 1:
         return f'{round(s, 1)}s'
@@ -117,15 +131,15 @@ def collector(pkt):
         COUNT_CLIENT += 1
         TLSClientHello = pkt.getlayer('TLS').getlayer('TLSClientHello')
 
-        server_names = getattr(TLSClientHello.getlayer('TLS_Ext_ServerName'), 'servernames', [])
+        server_names = get_attr(TLSClientHello.getlayer('TLS_Ext_ServerName'), 'servernames')
         if server_names:
-            server_name = getattr(server_names[0], 'servername', 'unknown').decode('utf8')
+            server_name = get_attr(server_names[0], 'servername', 'unknown').decode('utf8')
 
         TLSVersion = TLSClientHello.version
         Cipher = TLSClientHello.ciphers
-        Extensions_Length = map(lambda c: c.type, getattr(TLSClientHello, 'ext', ''))
-        Elliptic_Curves = getattr(TLSClientHello.getlayer('TLS_Ext_SupportedGroups'), 'groups', '')
-        EC_Point_Formats = getattr(TLSClientHello.getlayer('TLS_Ext_SupportedPointFormat'), 'ecpl', '')
+        Extensions_Length = map(lambda c: c.type, get_attr(TLSClientHello, 'ext'))
+        Elliptic_Curves = get_attr(TLSClientHello.getlayer('TLS_Ext_SupportedGroups'), 'groups')
+        EC_Point_Formats = get_attr(TLSClientHello.getlayer('TLS_Ext_SupportedPointFormat'), 'ecpl')
 
         raw_ja3 = concat([TLSVersion, Cipher, Extensions_Length, Elliptic_Curves, EC_Point_Formats])
         md5_ja3 = hashlib.md5(raw_ja3.encode('utf8')).hexdigest()
@@ -171,7 +185,7 @@ def collector(pkt):
 
         TLSVersion = TLSServerHello.version
         Cipher = TLSServerHello.cipher
-        Extensions_Length = map(lambda c: c.type, getattr(TLSServerHello, 'ext', ''))
+        Extensions_Length = map(lambda c: c.type, get_attr(TLSServerHello, 'ext'))
 
         raw_ja3s = concat([TLSVersion, Cipher, Extensions_Length])
         md5_ja3s = hashlib.md5(raw_ja3s.encode('utf8')).hexdigest()
