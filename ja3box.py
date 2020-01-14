@@ -184,7 +184,7 @@ def collector(pkt):
         TLSServerHello = pkt.getlayer('TLS').getlayer('TLSServerHello')
 
         TLSVersion = TLSServerHello.version
-        Cipher = get_attr(TLSClientHello, 'ciphers')
+        Cipher = get_attr(TLSServerHello, 'ciphers')
         Extensions_Length = map(lambda c: c.type, get_attr(TLSServerHello, 'ext'))
 
         raw_ja3s = concat([TLSVersion, Cipher, Extensions_Length])
