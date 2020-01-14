@@ -171,7 +171,7 @@ def collector(pkt):
 
         TLSVersion = TLSServerHello.version
         Cipher = TLSServerHello.cipher
-        Extensions_Length = map(lambda c: c.type, TLSServerHello.ext)
+        Extensions_Length = map(lambda c: c.type, getattr(TLSServerHello, 'ext', ''))
 
         raw_ja3s = concat([TLSVersion, Cipher, Extensions_Length])
         md5_ja3s = hashlib.md5(raw_ja3s.encode('utf8')).hexdigest()
