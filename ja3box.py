@@ -2,15 +2,15 @@ import sys
 import time
 import json
 import hashlib
+import argparse
 import datetime
 import warnings
 import collections.abc
 from itertools import cycle
 
-import argparse
-
 from scapy.utils import PcapWriter
 from scapy.all import sniff, load_layer
+from colorama import Fore, Style, init as colorama_init
 
 # ignore warning:
 # CryptographyDeprecationWarning:
@@ -18,6 +18,7 @@ from scapy.all import sniff, load_layer
 # from encoded data will be removed in a future version.
 # Please use EllipticCurvePublicKey.from_encoded_point
 warnings.filterwarnings('ignore')
+colorama_init()
 
 
 def get_attr(obj, attr, default=""):
@@ -47,7 +48,7 @@ def timer_unit(s):
 
 def put_color(string, color, bold=True):
     '''
-    give me some color to see ~
+    give me some color to see :P
     '''
 
     string = str(string)
@@ -57,23 +58,7 @@ def put_color(string, color, bold=True):
     else:
         bold = int(bold)
 
-    colors = {
-        'red': '31',
-        'green': '32',
-        'yellow': '33',
-
-        'blue': '34',
-        'pink': '35',
-        'cyan': '36',
-        'gray': '37',
-        'white': '37',
-    }
-
-    return '\033[40;{};{};40m{}\033[0m'.format(
-        bold,
-        colors.get(color, 'white'),
-        str(string),
-    )
+    return f'{Style.BRIGHT if bold else ""}{getattr(Fore, color.upper(), "WHITE")}{str(string)}{Style.RESET_ALL}'
 
 
 def Print(data):
@@ -220,13 +205,13 @@ def collector(pkt):
             Print(color_data)
 
 
-print('''
-\033[40;1;33;40m  ________
-\033[40;1;33;40m [__,.,--\\\\\033[0m\033[0m __     ______
-\033[40;1;33;40m    | |    \033[0m/ \\\\   |___ //
-\033[40;1;33;40m    | |   \033[0m/ _ \\\\    |_ \\\\
-\033[40;1;33;40m  ._| |  \033[0m/ ___ \\\\  ___) ||  toolbox
-\033[40;1;33;40m  \\__// \033[0m/_//  \\_\\\\|____//   v\033[40;0;32;40m1.0\033[0m
+print(f'''
+{Style.BRIGHT}{Fore.YELLOW}  ________
+{Style.BRIGHT}{Fore.YELLOW} [__,.,--\\\\{Style.RESET_ALL} __     ______
+{Style.BRIGHT}{Fore.YELLOW}    | |    {Style.RESET_ALL}/ \\\\   |___ //
+{Style.BRIGHT}{Fore.YELLOW}    | |   {Style.RESET_ALL}/ _ \\\\    |_ \\\\
+{Style.BRIGHT}{Fore.YELLOW}  ._| |  {Style.RESET_ALL}/ ___ \\\\  ___) ||  toolbox
+{Style.BRIGHT}{Fore.YELLOW}  \\__// {Style.RESET_ALL}/_//  \\_\\\\|____//   v{Fore.GREEN}1.0{Style.RESET_ALL}
 ''')
 
 parser = argparse.ArgumentParser(description='Version: 1.0; Running in Py3.x')
