@@ -51,14 +51,12 @@ def put_color(string, color, bold=True):
     give me some color to see :P
     '''
 
-    string = str(string)
-
     if color == 'gray':
-        bold = 2
+        COLOR = Style.DIM+Fore.WHITE
     else:
-        bold = int(bold)
+        COLOR = getattr(Fore, color.upper(), "WHITE")
 
-    return f'{Style.BRIGHT if bold else ""}{getattr(Fore, color.upper(), "WHITE")}{str(string)}{Style.RESET_ALL}'
+    return f'{Style.BRIGHT if bold else ""}{COLOR}{str(string)}{Style.RESET_ALL}'
 
 
 def Print(data):
