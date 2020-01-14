@@ -1,6 +1,7 @@
 import sys
 import time
 import json
+import random
 import hashlib
 import argparse
 import datetime
@@ -300,4 +301,12 @@ print(
     f'in {put_color(timer_unit(end_ts-start_ts), "white")}'
 )
 
-print('\n\r[*]', put_color('have a nice day!', 'green'))
+print(
+    '\n\r[*]',
+    put_color(
+        random.choice([
+            u"goodbye", u"have a nice day", u"see you later",
+            u"farewell", u"cheerio", u"bye",
+        ])+random.choice(['...', '~~', '!', ' :)']), 'green'
+    )
+)
