@@ -136,7 +136,7 @@ def collector(pkt):
             server_name = get_attr(server_names[0], 'servername', 'unknown').decode('utf8')
 
         TLSVersion = TLSClientHello.version
-        Cipher = TLSClientHello.ciphers
+        Cipher = get_attr(TLSClientHello, 'ciphers')
         Extensions_Length = map(lambda c: c.type, get_attr(TLSClientHello, 'ext'))
         Elliptic_Curves = get_attr(TLSClientHello.getlayer('TLS_Ext_SupportedGroups'), 'groups')
         EC_Point_Formats = get_attr(TLSClientHello.getlayer('TLS_Ext_SupportedPointFormat'), 'ecpl')
@@ -184,7 +184,7 @@ def collector(pkt):
         TLSServerHello = pkt.getlayer('TLS').getlayer('TLSServerHello')
 
         TLSVersion = TLSServerHello.version
-        Cipher = TLSServerHello.cipher
+        Cipher = get_attr(TLSClientHello, 'ciphers')
         Extensions_Length = map(lambda c: c.type, get_attr(TLSServerHello, 'ext'))
 
         raw_ja3s = concat([TLSVersion, Cipher, Extensions_Length])
