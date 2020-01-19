@@ -9,9 +9,9 @@ import warnings
 import collections.abc
 from itertools import cycle
 
+from colorama import Fore, Style
 from scapy.utils import PcapWriter
 from scapy.all import sniff, load_layer
-from colorama import Fore, Style, init as colorama_init
 
 # ignore warning:
 # CryptographyDeprecationWarning:
@@ -19,7 +19,6 @@ from colorama import Fore, Style, init as colorama_init
 # from encoded data will be removed in a future version.
 # Please use EllipticCurvePublicKey.from_encoded_point
 warnings.filterwarnings('ignore')
-colorama_init()
 
 
 def get_attr(obj, attr, default=""):
