@@ -215,9 +215,9 @@ print(f'''
 
 parser = argparse.ArgumentParser(description=f'Version: {VERSION}; Running in Py3.x')
 parser.add_argument("-i", default='Any', help="interface or list of interfaces (default: sniffing on all interfaces)")
-parser.add_argument("-f", default='', help="local pcap filename (in the offline mode)")
+parser.add_argument("-f", default=None, help="local pcap filename (in the offline mode)")
 parser.add_argument("-of", default='stdout', help="print result to? (default: stdout)")
-parser.add_argument("-bpf", default='', help="yes, it is BPF")
+parser.add_argument("-bpf", default=None, help="yes, it is BPF")
 
 parser.add_argument("--json", action="store_true", help="print result as json")
 parser.add_argument("--savepcap", action="store_true", help="save the raw pcap")
@@ -273,7 +273,7 @@ else:
     print(f'[*] iface: {put_color(iface, "white")}', end='\n\n')
 
 
-print(f'[*] BPF: {put_color(bpf if bpf else "None", "white")}')
+print(f'[*] BPF: {put_color(bpf, "white")}')
 print(f'[*] output filename: {put_color(output_filename, "white")}')
 print(f'[*] output as json: {put_color(need_json, "green" if need_json else "white", bold=False)}')
 print(f'[*] save raw pcap: {put_color(savepcap, "green" if savepcap else "white", bold=False)}')
