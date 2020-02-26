@@ -1,4 +1,3 @@
-import sys
 import time
 import json
 import random
@@ -203,18 +202,20 @@ def collector(pkt):
             Print(color_data)
 
 
+VERSION = '1.1'
+
 print(f'''
 {Style.BRIGHT}{Fore.YELLOW}  ________
 {Style.BRIGHT}{Fore.YELLOW} [__,.,--\\\\{Style.RESET_ALL} __     ______
 {Style.BRIGHT}{Fore.YELLOW}    | |    {Style.RESET_ALL}/ \\\\   |___ //
 {Style.BRIGHT}{Fore.YELLOW}    | |   {Style.RESET_ALL}/ _ \\\\    |_ \\\\
 {Style.BRIGHT}{Fore.YELLOW}  ._| |  {Style.RESET_ALL}/ ___ \\\\  ___) ||  toolbox
-{Style.BRIGHT}{Fore.YELLOW}  \\__// {Style.RESET_ALL}/_//  \\_\\\\|____//   v{Fore.GREEN}1.0{Style.RESET_ALL}
+{Style.BRIGHT}{Fore.YELLOW}  \\__// {Style.RESET_ALL}/_//  \\_\\\\|____//   v{Fore.GREEN}{VERSION}{Style.RESET_ALL}
 ''')
 
-parser = argparse.ArgumentParser(description='Version: 1.0; Running in Py3.x')
-parser.add_argument("-i", default='', help="the interface you want to use")
-parser.add_argument("-f", default='', help="local pcap filename(in the offline mode)")
+parser = argparse.ArgumentParser(description=f'Version: {VERSION}; Running in Py3.x')
+parser.add_argument("-i", default='Any', help="interface or list of interfaces (default: sniffing on all interfaces)")
+parser.add_argument("-f", default='', help="local pcap filename (in the offline mode)")
 parser.add_argument("-of", default='stdout', help="print result to? (default: stdout)")
 parser.add_argument("-bpf", default='', help="yes, it is BPF")
 
@@ -236,6 +237,7 @@ need_json = args.json
 output_filename = args.of
 savepcap = args.savepcap
 pcap_filename = args.pf
+iface = args.i
 
 if savepcap:
     pcap_dump = PcapWriter(
@@ -244,26 +246,19 @@ if savepcap:
         sync=True
     )
 
-load_layer("tls")
 
 sniff_args = {
     'prn': collector,
     # filter='(tcp[tcp[12]/16*4]=22 and (tcp[tcp[12]/16*4+9]=3) and (tcp[tcp[12]/16*4+1]=3))',
     'filter': bpf,
-    'store': 0  # DO NOT SET store to 1
+    'store': 0,  # DO NOT SET store to 1
+    'iface': iface if iface != 'Any' else None,
+    'verbose': False,
 }
 
 
-if args.i:
-    iface = args.i
-
-    sniff_args['iface'] = iface
-
-    print(f'[*] mode: {put_color("online", "green")}')
-    print(f'[*] iface: {put_color(iface, "white")}', end='\n\n')
-
-
-elif args.f:
+if args.f:
+    # 读取 pcap 文件，离线模式
     filename = args.f
     offline = filename
 
@@ -273,7 +268,10 @@ elif args.f:
     print(f'[*] filename: {put_color(filename, "white")}', end='\n\n')
 
 else:
-    sys.exit(f'[!] {put_color("give me the interface or filename", "red")}')
+    # 在线模式
+    print(f'[*] mode: {put_color("online", "green")}')
+    print(f'[*] iface: {put_color(iface, "white")}', end='\n\n')
+
 
 print(f'[*] BPF: {put_color(bpf if bpf else "None", "white")}')
 print(f'[*] output filename: {put_color(output_filename, "white")}')
@@ -285,7 +283,10 @@ if savepcap:
 
 print()
 
+load_layer("tls")
+
 start_ts = time.time()
+
 try:
     sniff(**sniff_args)
 except Exception as e:
