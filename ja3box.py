@@ -253,7 +253,7 @@ sniff_args = {
     'filter': bpf,
     'store': 0,  # DO NOT SET store to 1
     'iface': iface if iface != 'Any' else None,
-    'verbose': False,
+    # 'verbose': False,
 }
 
 
