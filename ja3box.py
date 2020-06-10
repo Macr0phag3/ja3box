@@ -119,11 +119,11 @@ def collector(pkt):
 
         TLSVersion = TLSClientHello.version
         Cipher = get_attr(TLSClientHello, 'ciphers')
-        Extensions_Length = map(lambda c: c.type, get_attr(TLSClientHello, 'ext'))
+        Extensions_Type = map(lambda c: c.type, get_attr(TLSClientHello, 'ext'))
         Elliptic_Curves = get_attr(TLSClientHello.getlayer('TLS_Ext_SupportedGroups'), 'groups')
         EC_Point_Formats = get_attr(TLSClientHello.getlayer('TLS_Ext_SupportedPointFormat'), 'ecpl')
 
-        raw_ja3 = concat([TLSVersion, Cipher, Extensions_Length, Elliptic_Curves, EC_Point_Formats])
+        raw_ja3 = concat([TLSVersion, Cipher, Extensions_Type, Elliptic_Curves, EC_Point_Formats])
         md5_ja3 = hashlib.md5(raw_ja3.encode('utf8')).hexdigest()
 
         if need_json:
@@ -167,9 +167,9 @@ def collector(pkt):
 
         TLSVersion = TLSServerHello.version
         Cipher = get_attr(TLSServerHello, 'ciphers')
-        Extensions_Length = map(lambda c: c.type, get_attr(TLSServerHello, 'ext'))
+        Extensions_Type = map(lambda c: c.type, get_attr(TLSServerHello, 'ext'))
 
-        raw_ja3s = concat([TLSVersion, Cipher, Extensions_Length])
+        raw_ja3s = concat([TLSVersion, Cipher, Extensions_Type])
         md5_ja3s = hashlib.md5(raw_ja3s.encode('utf8')).hexdigest()
 
         if need_json:
