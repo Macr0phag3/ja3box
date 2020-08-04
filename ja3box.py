@@ -93,7 +93,31 @@ def collector(pkt):
 
     print(f'[*] running... {put_color(next(roll), "green")}', end='\r')
 
-    if not pkt.haslayer('TLS'):
+    tcp_layer = pkt.getlayer('TCP')
+    if tcp_layer is None:
+        return
+
+    layer = get_attr(tcp_layer[0], 'msg')
+
+    if not layer:
+        return
+
+    from_type = 0
+    from_name = 'Server'
+    fp_name = 'ja3s'
+
+    layer = layer[0]
+    name = layer.name
+
+    if not name.endswith('Hello'):
+        return
+
+    if name.startswith('TLS') or name.startswith('SSL'):
+        if 'Client' in name:
+            from_type = 1
+            from_name = 'Client'
+            fp_name = 'ja3'
+    else:
         return
 
     src_ip = pkt.getlayer("IP").src
@@ -104,105 +128,103 @@ def collector(pkt):
 
     server_name = 'unknown'
 
-    if pkt.haslayer('TLSClientHello'):
-        # 版本(TLS ClientHello Version)、可接受的加密算法(Ciphers)、扩展列表各个段的长度(Extensions Length)
-        # 椭圆曲线密码(TLS_Ext_SupportedGroups)、椭圆曲线密码格式(ec_point_formats)
-        # 使用 `,` 来分隔各个字段，并通过 `-` 来分隔每个字段中的各个值
-        # 最后变成一个字符串
+    Version = layer.version
+    Cipher = get_attr(layer, 'ciphers' if from_type else 'cipher')
 
-        COUNT_CLIENT += 1
-        TLSClientHello = pkt.getlayer('TLS').getlayer('TLSClientHello')
+    exts = get_attr(layer, 'ext')
+    if exts:
+        Extensions_Type = list(map(lambda c: c.type, exts))
 
-        server_names = get_attr(TLSClientHello.getlayer('TLS_Ext_ServerName'), 'servernames')
-        if server_names:
-            server_name = get_attr(server_names[0], 'servername', 'unknown').decode('utf8')
+        # 下面几个字段可能是出现在固定的位置
+        # 但是这样写保险一点
+        if from_type:
+            # 版本(TLS ClientHello Version)、可接受的加密算法(Ciphers)、扩展列表各个段的长度(Extensions Length)
+            # 椭圆曲线密码(TLS_Ext_SupportedGroups)、椭圆曲线密码格式(ec_point_formats)
+            # 使用 `,` 来分隔各个字段，并通过 `-` 来分隔每个字段中的各个值
+            # 最后变成一个字符串
+            COUNT_CLIENT += 1
 
-        TLSVersion = TLSClientHello.version
-        Cipher = get_attr(TLSClientHello, 'ciphers')
-        Extensions_Type = map(lambda c: c.type, get_attr(TLSClientHello, 'ext'))
-        Elliptic_Curves = get_attr(TLSClientHello.getlayer('TLS_Ext_SupportedGroups'), 'groups')
-        EC_Point_Formats = get_attr(TLSClientHello.getlayer('TLS_Ext_SupportedPointFormat'), 'ecpl')
+            try:
+                loc = Extensions_Type.index(0)
+            except IndexError:
+                server_name = 'unknown'
+            else:
+                server_names = get_attr(exts[loc], 'servernames')
 
-        raw_ja3 = concat([TLSVersion, Cipher, Extensions_Type, Elliptic_Curves, EC_Point_Formats])
-        md5_ja3 = hashlib.md5(raw_ja3.encode('utf8')).hexdigest()
+                if server_names:
+                    server_name = get_attr(server_names[0], 'servername', 'unknown').decode('utf8')
 
-        if need_json:
-            json_data = {
-                'type': 'ClientHello',
-                'src': {
-                    'ip': src_ip,
-                    'port': src_port,
-                },
-                'dst': {
-                    'ip': dst_ip,
-                    'port': dst_port,
-                    'server_name': server_name
-                },
-                'ja3': {
-                    'str': raw_ja3,
-                    'md5': md5_ja3
-                }
-            }
+            try:
+                loc = Extensions_Type.index(11)
+            except IndexError:
+                EC_Point_Formats = []
+            else:
+                EC_Point_Formats = get_attr(exts[loc], 'ecpl')
 
-            Print(json_data)
+            try:
+                loc = Extensions_Type.index(10)
+            except IndexError:
+                Elliptic_Curves = []
+            else:
+                Elliptic_Curves = get_attr(exts[loc], 'groups')
+
+            raw_fp = concat([Version, Cipher, Extensions_Type, Elliptic_Curves, EC_Point_Formats])
         else:
-            color_data = '\n'.join([
-                f'[+] Hello from {put_color("Client", "cyan", bold=False)}',
-                f'  [-] src ip: {put_color(src_ip, "cyan")}',
-                f'  [-] src port: {put_color(src_port, "white")}',
-                f'  [-] dst ip: {put_color(dst_ip, "blue")} ({put_color(server_name, "white")})',
-                f'  [-] dst port: {put_color(dst_port, "white")}',
-                f'  [-] ja3: {raw_ja3}',
-                f'  [-] md5: {put_color(md5_ja3, "yellow")}'
-            ])
-            Print(color_data)
+            # 版本(TLS ClientHello Version)、可接受的加密算法(Ciphers)、扩展列表各个段的长度(Extensions Length)
+            # 使用 `,` 来分隔各个字段，并通过 `-` 来分隔每个字段中的各个值
+            # 最后变成一个字符串
+            COUNT_SERVER += 1
 
-    elif pkt.haslayer('TLSServerHello'):
-        # 版本(TLS ClientHello Version)、可接受的加密算法(Ciphers)、扩展列表各个段的长度(Extensions Length)
-        # 使用 `,` 来分隔各个字段，并通过 `-` 来分隔每个字段中的各个值
-        # 最后变成一个字符串
+    else:
+        Extensions_Type = Elliptic_Curves = EC_Point_Formats = []
 
-        COUNT_SERVER += 1
-        TLSServerHello = pkt.getlayer('TLS').getlayer('TLSServerHello')
+    if from_type:
+        raw_fp = concat([Version, Cipher, Extensions_Type, Elliptic_Curves, EC_Point_Formats])
+    else:
+        raw_fp = concat([Version, Cipher, Extensions_Type])
 
-        TLSVersion = TLSServerHello.version
-        Cipher = get_attr(TLSServerHello, 'ciphers')
-        Extensions_Type = map(lambda c: c.type, get_attr(TLSServerHello, 'ext'))
+    md5_fp = hashlib.md5(raw_fp.encode('utf8')).hexdigest()
 
-        raw_ja3s = concat([TLSVersion, Cipher, Extensions_Type])
-        md5_ja3s = hashlib.md5(raw_ja3s.encode('utf8')).hexdigest()
-
-        if need_json:
-            json_data = {
-                'type': 'ServerHello',
-                'src': {
-                    'ip': src_ip,
-                    'port': src_port,
-                },
-                'dst': {
-                    'ip': dst_ip,
-                    'port': dst_port
-                },
-                'ja3s': {
-                    'str': raw_ja3s,
-                    'md5': md5_ja3s
-                }
+    handshake_type = name.split(' ')[0]
+    if need_json:
+        json_data = {
+            'from': from_name,
+            'type': handshake_type,
+            'src': {
+                'ip': src_ip,
+                'port': src_port,
+            },
+            'dst': {
+                'ip': dst_ip,
+                'port': dst_port,
+            },
+            fp_name: {
+                'str': raw_fp,
+                'md5': md5_fp
             }
-            Print(json_data)
-        else:
-            color_data = '\n'.join([
-                f'[+] Hello from {put_color("Server", "cyan", bold=False)}',
-                f'  [-] src ip: {put_color(src_ip, "cyan")}',
-                f'  [-] src port: {put_color(src_port, "white")}',
-                f'  [-] dst ip: {put_color(dst_ip, "blue")}',
-                f'  [-] dst port: {put_color(dst_port, "white")}',
-                f'  [-] ja3s: {raw_ja3s}',
-                f'  [-] md5: {put_color(md5_ja3s, "yellow")}'
-            ])
-            Print(color_data)
+        }
+
+        if from_type:
+            json_data['dst']['server_name'] = server_name
+
+        Print(json_data)
+    else:
+        color_data = '\n'.join([
+            f'[+] Hello from {put_color(from_name, "cyan", bold=False)}',
+            f'  [-] type: {put_color(handshake_type, "green")}',
+            f'  [-] src ip: {put_color(src_ip, "cyan")}',
+            f'  [-] src port: {put_color(src_port, "white")}',
+            f'  [-] dst ip: {put_color(dst_ip, "blue")}' + (
+                f' ({put_color(server_name, "white")})' if from_type else ''
+            ),
+            f'  [-] dst port: {put_color(dst_port, "white")}',
+            f'  [-] {fp_name}: {raw_fp}',
+            f'  [-] md5: {put_color(md5_fp, "yellow")}'
+        ])
+        Print(color_data)
 
 
-VERSION = '1.1'
+VERSION = '2.0'
 
 print(f'''
 {Style.BRIGHT}{Fore.YELLOW}  ________
@@ -291,6 +313,7 @@ try:
     sniff(**sniff_args)
 except Exception as e:
     print(f'[!] {put_color(f"Something went wrong: {e}", "red")}')
+    # raise
 
 end_ts = time.time()
 print(
