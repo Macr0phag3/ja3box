@@ -2,11 +2,13 @@
 
 <img src="/pics/logo.png" width="500">
 
-extract ja3 when sniffing or from a pcap.
+extract ja3 when sniffing or from a pcap (or pcapng ...).
 
 about ja3(s): 
 1. https://engineering.salesforce.com/tls-fingerprinting-with-ja3-and-ja3s-247362855967
 2. https://xz.aliyun.com/t/3889
+
+理论上支持 TLS/SSL 全版本提取（未全部测试，如有问题请提交 issue）
 
 ## Env
 
