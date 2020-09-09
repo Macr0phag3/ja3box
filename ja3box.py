@@ -8,7 +8,7 @@ import warnings
 import collections.abc
 from itertools import cycle
 
-from colorama import Fore, Style
+from colorama import Fore, Style, init as Init
 from scapy.utils import PcapWriter
 from scapy.all import sniff, load_layer
 
@@ -18,6 +18,9 @@ from scapy.all import sniff, load_layer
 # from encoded data will be removed in a future version.
 # Please use EllipticCurvePublicKey.from_encoded_point
 warnings.filterwarnings('ignore')
+
+# 兼容 win 的颜色输出
+Init()
 
 
 def get_attr(obj, attr, default=""):
