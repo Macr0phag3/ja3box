@@ -124,20 +124,12 @@ def collector(pkt):
     else:
         return
 
-    try:
-        src_ip = pkt.getlayer("IP").src
-    except Exception:
-        pcap_dump = PcapWriter(
-            f'debug.pcap',
-            append=True,
-            sync=True
-        )
-        pcap_dump.write(pkt)
-        raise
+    IP_layer = pkt.getlayer("IP") or pkt.getlayer("IPv6")
 
+    src_ip = IP_layer.src
     src_port = pkt.getlayer("TCP").sport
 
-    dst_ip = pkt.getlayer("IP").dst
+    dst_ip = IP_layer.dst
     dst_port = pkt.getlayer("TCP").dport
 
     server_name = 'unknown'
