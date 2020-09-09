@@ -182,8 +182,8 @@ def collector(pkt):
         COUNT_CLIENT += 1
         raw_fp = concat([Version, Cipher, Extensions_Type, Elliptic_Curves, EC_Point_Formats])
     else:
-        raw_fp = concat([Version, Cipher, Extensions_Type])
         COUNT_SERVER += 1
+        raw_fp = concat([Version, Cipher, Extensions_Type])
 
     md5_fp = hashlib.md5(raw_fp.encode('utf8')).hexdigest()
 
