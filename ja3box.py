@@ -148,7 +148,6 @@ def collector(pkt):
             # 椭圆曲线密码(TLS_Ext_SupportedGroups)、椭圆曲线密码格式(ec_point_formats)
             # 使用 `,` 来分隔各个字段，并通过 `-` 来分隔每个字段中的各个值
             # 最后变成一个字符串
-            COUNT_CLIENT += 1
 
             try:
                 loc = Extensions_Type.index(0)
@@ -175,19 +174,16 @@ def collector(pkt):
                 Elliptic_Curves = get_attr(exts[loc], 'groups')
 
             raw_fp = concat([Version, Cipher, Extensions_Type, Elliptic_Curves, EC_Point_Formats])
-        else:
-            # 版本(TLS ClientHello Version)、可接受的加密算法(Ciphers)、扩展列表各个段的长度(Extensions Length)
-            # 使用 `,` 来分隔各个字段，并通过 `-` 来分隔每个字段中的各个值
-            # 最后变成一个字符串
-            COUNT_SERVER += 1
 
     else:
         Extensions_Type = Elliptic_Curves = EC_Point_Formats = []
 
     if from_type:
+        COUNT_CLIENT += 1
         raw_fp = concat([Version, Cipher, Extensions_Type, Elliptic_Curves, EC_Point_Formats])
     else:
         raw_fp = concat([Version, Cipher, Extensions_Type])
+        COUNT_SERVER += 1
 
     md5_fp = hashlib.md5(raw_fp.encode('utf8')).hexdigest()
 
