@@ -66,11 +66,12 @@ def Print(data):
             print(data, end='\n\n')
     else:
         if need_json:
-            with open(output_filename, 'w') as fp:
+            with open(output_filename, 'a') as fp:
                 json.dump(data, fp)
+                fp.write('\n')
         else:
             with open(output_filename, 'a') as fp:
-                fp.write(data)
+                fp.write(data+'\n')
 
 
 def concat(data):
