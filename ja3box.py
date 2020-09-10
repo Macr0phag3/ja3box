@@ -10,7 +10,7 @@ from itertools import cycle
 
 from colorama import Fore, Style, init as Init
 from scapy.utils import PcapWriter
-from scapy.all import sniff, load_layer
+from scapy.all import sniff, load_layer, Ether
 
 # ignore warning:
 # CryptographyDeprecationWarning:
@@ -88,7 +88,7 @@ def concat(data):
 
 
 def collector(pkt):
-    global COUNT, COUNT_SERVER, COUNT_CLIENT
+    global COUNT, COUNT_SERVER, COUNT_CLIENT, NEW_BIND_PORTS
 
     COUNT += 1
 
@@ -101,20 +101,57 @@ def collector(pkt):
     if tcp_layer is None:
         return
 
+    IP_layer = pkt.getlayer("IP") or pkt.getlayer("IPv6")
+
+    src_ip = IP_layer.src
+    src_port = pkt.getlayer("TCP").sport
+
+    dst_ip = IP_layer.dst
+    dst_port = pkt.getlayer("TCP").dport
+
     layer = get_attr(tcp_layer[0], 'msg')
-
     if not layer:
-        return
+        # 有两种情况会导致为空
+        # 1. 可能不为 TLS/SSL
+        # 2. 也可能是 Scapy 认为这个端口不会传输 TLS/SSL，
+        #    见 github.com/secdev/scapy/issues/2806
+        if pkt.lastlayer().name != 'Raw':
+            # 如果最后一层不是 Raw，
+            # 那么就可以排除第二种情况
+            # 直接舍弃
+            return
 
-    from_type = 0
-    from_name = 'Server'
-    fp_name = 'ja3s'
+        if src_port in NEW_BIND_PORTS[0] and dst_port in NEW_BIND_PORTS[1]:
+            # 如果之前已经加过这两个端口
+            # 依旧没有识别出来，就可以排除第二种情况
+            return
+
+        # 新增端口，
+        # 告诉 scapy 遇到这对端口也要尝试解析 TLS/SSL
+        # _注意这里的端口并非成对的，而是可以随意组合的_
+        bind_layers(TCP, TLS, sport=src_port)
+        bind_layers(TCP, TLS, dport=dst_port)
+
+        NEW_BIND_PORTS[0].add(src_port)
+        NEW_BIND_PORTS[1].add(dst_port)
+
+        # 新增端口之后还需要重新解析数据包
+        pkt = Ether(pkt.do_build())
+        tcp_layer = pkt.getlayer('TCP')
+        layer = get_attr(tcp_layer[0], 'msg')
+        if not layer:
+            # 一顿操作之后还是为空的话就舍弃
+            return
 
     layer = layer[0]
     name = layer.name
 
     if not name.endswith('Hello'):
         return
+
+    from_type = 0
+    from_name = 'Server'
+    fp_name = 'ja3s'
 
     if name.startswith('TLS') or name.startswith('SSL'):
         if 'Client' in name:
@@ -123,14 +160,6 @@ def collector(pkt):
             fp_name = 'ja3'
     else:
         return
-
-    IP_layer = pkt.getlayer("IP") or pkt.getlayer("IPv6")
-
-    src_ip = IP_layer.src
-    src_port = pkt.getlayer("TCP").sport
-
-    dst_ip = IP_layer.dst
-    dst_port = pkt.getlayer("TCP").dport
 
     server_name = 'unknown'
 
@@ -151,7 +180,7 @@ def collector(pkt):
 
             try:
                 loc = Extensions_Type.index(0)
-            except IndexError:
+            except ValueError:
                 server_name = 'unknown'
             else:
                 server_names = get_attr(exts[loc], 'servernames')
@@ -254,6 +283,7 @@ parser.add_argument(
 args = parser.parse_args()
 
 COUNT = COUNT_SERVER = COUNT_CLIENT = 0
+NEW_BIND_PORTS = [set(), set()]
 roll = cycle('\\|-/')
 
 bpf = args.bpf
@@ -315,7 +345,6 @@ try:
     sniff(**sniff_args)
 except Exception as e:
     print(f'[!] {put_color(f"Something went wrong: {e}", "red")}')
-    # raise
 
 end_ts = time.time()
 print(
