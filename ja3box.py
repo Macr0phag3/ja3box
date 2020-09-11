@@ -8,9 +8,9 @@ import warnings
 import collections.abc
 from itertools import cycle
 
-from colorama import Fore, Style, init as Init
 from scapy.utils import PcapWriter
-from scapy.all import sniff, load_layer, Ether
+from colorama import Fore, Style, init as Init
+from scapy.all import sniff, load_layer, Ether, bind_layers, TCP
 
 # ignore warning:
 # CryptographyDeprecationWarning:
@@ -129,8 +129,8 @@ def collector(pkt):
         # 新增端口，
         # 告诉 scapy 遇到这对端口也要尝试解析 TLS/SSL
         # _注意这里的端口并非成对的，而是可以随意组合的_
-        bind_layers(TCP, TLS, sport=src_port)
-        bind_layers(TCP, TLS, dport=dst_port)
+        bind_layers(TCP, TLS, sport=src_port)  # noqa: F821
+        bind_layers(TCP, TLS, dport=dst_port)  # noqa: F821
 
         NEW_BIND_PORTS[0].add(src_port)
         NEW_BIND_PORTS[1].add(dst_port)
