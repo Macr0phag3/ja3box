@@ -2,7 +2,7 @@
 
 <img src="/pics/logo.png" width="500">
 
-extract ja3 when sniffing or from a pcap (or pcapng ...).
+extract ja3(s) when sniffing or from a pcap (or pcapng ...).
 
 about ja3(s): 
 1. https://engineering.salesforce.com/tls-fingerprinting-with-ja3-and-ja3s-247362855967
@@ -15,8 +15,8 @@ about ja3(s):
 1. `pip install scapy`
 2. `pip install colorama`
 2. py3.x
-3. macos or linux, maybe windows
-4. run as root when in the online mode
+3. `macos`/`linux`/`windows`
+4. **run as root when in the online mode**
 
 ## Example
 > online mode
@@ -31,13 +31,13 @@ about ja3(s):
 
 <img src="/pics/offline.png" width="600">
 
-> output json
+> output in json format
 
 `sudo python ja3box.py -i en0 --json`
 
 <img src="/pics/output-json.png">
 
-> save json to file
+> saved json as file
 
 `sudo python ja3box.py -i en0 -of test.json --json`
 
