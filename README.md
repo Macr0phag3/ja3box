@@ -49,12 +49,13 @@ about ja3(s):
 usage: ja3box.py [-h] [-i I] [-f F] [-of OF] [-bpf BPF] [--json] [--savepcap]
                  [-pf PF]
 
-Version: 1.0; Running in Py3.x
+Version: 2.0; Running in Py3.x
 
 optional arguments:
   -h, --help  show this help message and exit
-  -i I        the interface you want to use
-  -f F        local pcap filename(in the offline mode)
+  -i I        interface or list of interfaces (default: sniffing on all
+              interfaces)
+  -f F        local pcap filename (in the offline mode)
   -of OF      print result to? (default: stdout)
   -bpf BPF    yes, it is BPF
   --json      print result as json
