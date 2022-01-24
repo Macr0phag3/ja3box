@@ -271,7 +271,7 @@ def collector(pkt):
         Print(color_data)
 
 
-VERSION = '2.0'
+VERSION = '2.1'
 
 print(f'''
 {Style.BRIGHT}{Fore.YELLOW}  ________
