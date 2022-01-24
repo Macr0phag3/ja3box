@@ -128,7 +128,7 @@ def collector(pkt):
 
         # 新增端口，
         # 告诉 scapy 遇到这对端口也要尝试解析 TLS/SSL
-        # _注意这里的端口并非成对的，而是可以随意组合的_
+        # **注意这里的端口并非成对的，而是可以随意组合的**
         bind_layers(TCP, TLS, sport=src_port)  # noqa: F821
         bind_layers(TCP, TLS, dport=dst_port)  # noqa: F821
 
@@ -158,6 +158,9 @@ def collector(pkt):
             from_type = 1
             from_name = 'Client'
             fp_name = 'ja3'
+        elif ja3_type not in ["ja3s", "all"]:
+            # Server
+            return
     else:
         return
 
@@ -186,7 +189,10 @@ def collector(pkt):
                 server_names = get_attr(exts[loc], 'servernames')
 
                 if server_names:
-                    server_name = get_attr(server_names[0], 'servername', 'unknown').decode('utf8')
+                    server_name = get_attr(
+                        server_names[0],
+                        'servername', 'unknown'
+                    ).decode('utf8')
 
             try:
                 loc = Extensions_Type.index(11)
@@ -202,20 +208,25 @@ def collector(pkt):
             else:
                 Elliptic_Curves = get_attr(exts[loc], 'groups')
 
-            raw_fp = concat([Version, Cipher, Extensions_Type, Elliptic_Curves, EC_Point_Formats])
+            raw_fp = concat([
+                Version, Cipher, Extensions_Type,
+                Elliptic_Curves, EC_Point_Formats
+            ])
 
     else:
         Extensions_Type = Elliptic_Curves = EC_Point_Formats = []
 
     if from_type:
         COUNT_CLIENT += 1
-        raw_fp = concat([Version, Cipher, Extensions_Type, Elliptic_Curves, EC_Point_Formats])
+        raw_fp = concat([
+            Version, Cipher, Extensions_Type,
+            Elliptic_Curves, EC_Point_Formats
+        ])
     else:
         COUNT_SERVER += 1
         raw_fp = concat([Version, Cipher, Extensions_Type])
 
     md5_fp = hashlib.md5(raw_fp.encode('utf8')).hexdigest()
-
     handshake_type = name.split(' ')[0]
     if need_json:
         json_data = {
@@ -267,13 +278,32 @@ print(f'''
 ''')
 
 parser = argparse.ArgumentParser(description=f'Version: {VERSION}; Running in Py3.x')
-parser.add_argument("-i", default='Any', help="interface or list of interfaces (default: sniffing on all interfaces)")
-parser.add_argument("-f", default=None, help="local pcap filename (in the offline mode)")
-parser.add_argument("-of", default='stdout', help="print result to? (default: stdout)")
-parser.add_argument("-bpf", default=None, help="yes, it is BPF")
+parser.add_argument(
+    "-i", default='Any',
+    help="interface or list of interfaces (default: sniffing on all interfaces)"
+)
+parser.add_argument(
+    "-f", default=None,
+    help="local pcap filename (in the offline mode)"
+)
+parser.add_argument(
+    "-of", default='stdout',
+    help="print result to? (default: stdout)"
+)
+parser.add_argument(
+    "-bpf", default=None, help="yes, it is BPF"
+)
+
+parser.add_argument(
+    "--type", default="all",
+    choices=["ja3", "ja3s"], help="get pure ja3/ja3s"
+)
 
 parser.add_argument("--json", action="store_true", help="print result as json")
-parser.add_argument("--savepcap", action="store_true", help="save the raw pcap")
+parser.add_argument(
+    "--savepcap", action="store_true",
+    help="save the raw pcap"
+)
 parser.add_argument(
     "-pf",
     default=datetime.datetime.now().strftime("%Y.%m.%d-%X"),
@@ -292,6 +322,7 @@ output_filename = args.of
 savepcap = args.savepcap
 pcap_filename = args.pf
 iface = args.i
+ja3_type = args.type
 
 if savepcap:
     pcap_dump = PcapWriter(
@@ -328,6 +359,7 @@ else:
 
 
 print(f'[*] BPF: {put_color(bpf, "white")}')
+print(f'[*] type filter: {put_color(ja3_type, "white")}')
 print(f'[*] output filename: {put_color(output_filename, "white")}')
 print(f'[*] output as json: {put_color(need_json, "green" if need_json else "white", bold=False)}')
 print(f'[*] save raw pcap: {put_color(savepcap, "green" if savepcap else "white", bold=False)}')
