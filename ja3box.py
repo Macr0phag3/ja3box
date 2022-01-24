@@ -213,11 +213,6 @@ def collector(pkt):
             else:
                 Elliptic_Curves = get_attr(exts[loc], 'groups')
 
-            raw_fp = concat([
-                Version, Cipher, Extensions_Type,
-                Elliptic_Curves, EC_Point_Formats
-            ])
-
     else:
         Extensions_Type = Elliptic_Curves = EC_Point_Formats = []
 
