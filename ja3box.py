@@ -155,11 +155,16 @@ def collector(pkt):
 
     if name.startswith('TLS') or name.startswith('SSL'):
         if 'Client' in name:
+            if ja3_type not in ["ja3", "all"]:
+                # filter ja3
+                return
+
             from_type = 1
             from_name = 'Client'
             fp_name = 'ja3'
+
         elif ja3_type not in ["ja3s", "all"]:
-            # Server
+            # filter ja3s
             return
     else:
         return
@@ -296,7 +301,7 @@ parser.add_argument(
 
 parser.add_argument(
     "--type", default="all",
-    choices=["ja3", "ja3s"], help="get pure ja3/ja3s"
+    choices=["ja3", "ja3s", "all"], help="get pure ja3/ja3s"
 )
 
 parser.add_argument("--json", action="store_true", help="print result as json")
