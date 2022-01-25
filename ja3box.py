@@ -77,14 +77,22 @@ def Print(data):
                 fp.write(data+'\n')
 
 
-def concat(data):
+def concat(data, delete_grease=False):
+    result = []
     for i, d in enumerate(data):
         if isinstance(d, collections.abc.Iterable):
-            data[i] = '-'.join(map(str, d))
-        elif not isinstance(d, (str, bytes)):
-            data[i] = str(d)
+            result.append('-'.join(map(
+                str,
+                remove_grease(d) if delete_grease else d
+            )))
+        else:
+            result.append(str(d))
 
-    return ','.join(data)
+    return ','.join(result)
+
+
+def remove_grease(value):
+    return [i for i in value if i not in GREASE_TABLE]
 
 
 def collector(pkt):
@@ -218,15 +226,21 @@ def collector(pkt):
 
     if from_type:
         COUNT_CLIENT += 1
-        raw_fp = concat([
+        value = [
             Version, Cipher, Extensions_Type,
             Elliptic_Curves, EC_Point_Formats
-        ])
+        ]
+
     else:
         COUNT_SERVER += 1
-        raw_fp = concat([Version, Cipher, Extensions_Type])
+        value = [Version, Cipher, Extensions_Type]
+
+    raw_fp = concat(value)
+    raw_fp_no_grease = concat(value, delete_grease=True)
 
     md5_fp = hashlib.md5(raw_fp.encode('utf8')).hexdigest()
+    md5_fp_no_grease = hashlib.md5(raw_fp_no_grease.encode('utf8')).hexdigest()
+
     handshake_type = name.split(' ')[0]
     if need_json:
         json_data = {
@@ -242,7 +256,9 @@ def collector(pkt):
             },
             fp_name: {
                 'str': raw_fp,
-                'md5': md5_fp
+                'md5': md5_fp,
+                'str_no_grease': md5_fp_no_grease,
+                'md5_no_grease': md5_fp_no_grease,
             }
         }
 
@@ -261,7 +277,9 @@ def collector(pkt):
             ),
             f'  [-] dst port: {put_color(dst_port, "white")}',
             f'  [-] {fp_name}: {raw_fp}',
-            f'  [-] md5: {put_color(md5_fp, "yellow")}'
+            f'  [-] {fp_name}_no_grease: {raw_fp_no_grease}',
+            f'  [-] md5: {put_color(md5_fp, "yellow")}',
+            f'  [-] md5_no_grease: {put_color(md5_fp_no_grease, "yellow")}',
         ])
         Print(color_data)
 
@@ -313,6 +331,13 @@ parser.add_argument(
 args = parser.parse_args()
 
 COUNT = COUNT_SERVER = COUNT_CLIENT = 0
+GREASE_TABLE = {
+    0x0a0a, 0x1a1a, 0x2a2a, 0x3a3a,
+    0x4a4a, 0x5a5a, 0x6a6a, 0x7a7a,
+    0x8a8a, 0x9a9a, 0xaaaa, 0xbaba,
+    0xcaca, 0xdada, 0xeaea, 0xfafa
+}
+
 NEW_BIND_PORTS = [set(), set()]
 roll = cycle('\\|-/')
 
