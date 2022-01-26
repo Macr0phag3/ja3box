@@ -45,22 +45,28 @@ about ja3(s):
 ### More
 ```
 » sudo python ja3box.py -h
-usage: ja3box.py [-h] [-i I] [-f F] [-of OF] [-bpf BPF] [--json] [--savepcap]
-                 [-pf PF]
+  ________
+ [__,.,--\\ __     ______
+    | |    / \\   |___ //
+    | |   / _ \\    |_ \\
+  ._| |  / ___ \\  ___) ||  toolbox
+  \__// /_//  \_\\|____//   v2.2
 
-Version: 2.0; Running in Py3.x
+usage: ja3box.py [-h] [-i I] [-f F] [-of OF] [-bpf BPF] [--type {ja3,ja3s,all}] [--json] [--savepcap] [-pf PF]
+
+Version: 2.2; Running in Py3.x
 
 optional arguments:
-  -h, --help  show this help message and exit
-  -i I        interface or list of interfaces (default: sniffing on all
-              interfaces)
-  -f F        local pcap filename (in the offline mode)
-  -of OF      print result to? (default: stdout)
-  -bpf BPF    yes, it is BPF
-  --json      print result as json
-  --savepcap  save the raw pcap
-  -pf PF      eg. `-pf test`: save the raw pcap as test.pcap
-
+  -h, --help            show this help message and exit
+  -i I                  interface or list of interfaces (default: sniffing on all interfaces)
+  -f F                  local pcap filename (in the offline mode)
+  -of OF                print result to? (default: stdout)
+  -bpf BPF              yes, it is BPF
+  --type {ja3,ja3s,all}
+                        get pure ja3/ja3s
+  --json                print result as json
+  --savepcap            save the raw pcap
+  -pf PF                eg. `-pf test`: save the raw pcap as test.pcap
 ```
 
 ## Others

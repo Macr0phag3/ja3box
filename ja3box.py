@@ -284,7 +284,7 @@ def collector(pkt):
         Print(color_data)
 
 
-VERSION = '2.1'
+VERSION = '2.2'
 
 print(f'''
 {Style.BRIGHT}{Fore.YELLOW}  ________
@@ -313,7 +313,7 @@ parser.add_argument(
 )
 
 parser.add_argument(
-    "--type", default="all",
+    "-jtype", default="all",
     choices=["ja3", "ja3s", "all"], help="get pure ja3/ja3s"
 )
 
@@ -347,7 +347,7 @@ output_filename = args.of
 savepcap = args.savepcap
 pcap_filename = args.pf
 iface = args.i
-ja3_type = args.type
+ja3_type = args.jtype
 
 if savepcap:
     pcap_dump = PcapWriter(
